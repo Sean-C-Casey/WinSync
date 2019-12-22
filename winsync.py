@@ -83,6 +83,8 @@ def sync(lin_dir, MODE, QUIET):
             print("Windows symlink not found :(\nExiting")
         exit(1)
 
+    # print(lin_dir)  # DEBUG
+    os.chdir(lin_dir)
     lin_files = [f for f in os.listdir(lin_dir) if os.path.isfile(f)]
 
     os.chdir(winlink)
@@ -92,16 +94,19 @@ def sync(lin_dir, MODE, QUIET):
 
     # Evaluate Windows files (Pull mode)
     if (MODE == "pull") or (MODE == "both"):
+        # print(lin_files)  # DEBUG
         for i in range(len(win_files)):
             file = win_files[i]
             win_file = win_dir + "/" + file
 
+            # print(file)       # DEBUG
             if file in lin_files:
                 lin_file = lin_dir + "/" + file
-                win_time = os.path.getmtime(win_file)
-                lin_time = os.path.getmtime(lin_file)
+                win_time = int(os.path.getmtime(win_file))  # Round to whole sec
+                lin_time = int(os.path.getmtime(lin_file))  # Round to whole sec
 
-                if lin_time > win_time:
+                # print(lin_time, "<->", win_time)    # DEBUG
+                if lin_time >= win_time:
                     # Linux file more recent; remove from Windows file list
                     win_files[i] = None
 
@@ -118,10 +123,10 @@ def sync(lin_dir, MODE, QUIET):
             if file in win_files:
                 # If present in both, compare modification times and dates
                 win_file = win_dir + "/" + file
-                lin_time = os.path.getmtime(lin_file)
-                win_time = os.path.getmtime(win_file)
+                lin_time = int(os.path.getmtime(lin_file))  # Round to whole sec
+                win_time = int(os.path.getmtime(win_file))  # Round to whole sec
 
-                if win_time > lin_time:
+                if win_time >= lin_time:
                     # Windows file more recent; remove from Linux file list
                     lin_files[i] = None
     count = 0
@@ -136,7 +141,7 @@ def sync(lin_dir, MODE, QUIET):
             win_file = win_dir + "/" + file
             lin_file = lin_dir + "/" + file
             if not QUIET:
-                print(win_file, "-->", lin_file)
+                print(win_file, "-->", lin_file, "\n")
             try:
                 sh.copy2(win_file, lin_file)
                 count += 1
@@ -151,10 +156,11 @@ def sync(lin_dir, MODE, QUIET):
             if (not file) or (file is None):
                 continue
 
+            print(file)
             lin_file = lin_dir + "/" + file
             win_file = win_dir + "/" + file
             if not QUIET:
-                print(lin_file, "-->", win_file)
+                print(lin_file, "-->", win_file, "\n")
             try:
                 sh.copy2(lin_file, win_file)
                 count += 1
