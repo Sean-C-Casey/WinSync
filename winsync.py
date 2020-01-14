@@ -19,7 +19,7 @@ def main():
     QUIET = False
     LIN_DIR = os.getcwd()
     MODES = ("push", "pull", "both")
-    MODE = "pull"   # Default: pull from Windows partition
+    MODE = "both"   # Default: sync both ways
     for opt, arg in opts:
         if opt == "-q":                     # Option q - Quiet mode, don't print
             QUIET = True
@@ -81,6 +81,7 @@ def sync(lin_dir, MODE, QUIET):
     if not os.path.exists(winlink):
         if not QUIET:
             print("Windows symlink not found :(\nExiting")
+        exit(1)
         exit(1)
 
     # print(lin_dir)  # DEBUG
