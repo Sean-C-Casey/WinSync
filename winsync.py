@@ -82,22 +82,26 @@ def sync(lin_dir, MODE, QUIET):
         if not QUIET:
             print("Windows symlink not found :(\nExiting")
         exit(1)
-        exit(1)
 
     # print(lin_dir)  # DEBUG
     os.chdir(lin_dir)
-    lin_files = [f for f in os.listdir(lin_dir) if os.path.isfile(f)]
+    lin_files = dict()
+    for f in os.listdir(lin_dir):
+        if os.path.isfile(f):
+            lin_files[f] = True
 
     os.chdir(winlink)
     win_dir = os.getcwd()
-    win_files = [f for f in os.listdir(win_dir) if os.path.isfile(f)]
+    win_files = dict()
+    for f in os.listdir(win_dir):
+        if os.path.isfile(f):
+            win_files[f] = True
     os.chdir(lin_dir)
 
     # Evaluate Windows files (Pull mode)
     if (MODE == "pull") or (MODE == "both"):
         # print(lin_files)  # DEBUG
-        for i in range(len(win_files)):
-            file = win_files[i]
+        for file in win_files:
             win_file = win_dir + "/" + file
 
             # print(file)       # DEBUG
@@ -109,17 +113,16 @@ def sync(lin_dir, MODE, QUIET):
                 # print(lin_time, "<->", win_time)    # DEBUG
                 if lin_time >= win_time:
                     # Linux file more recent; remove from Windows file list
-                    win_files[i] = None
+                    win_files[file] = False
 
     # Evaluate Linux files (Push mode)
     if (MODE == "push") or (MODE == "both"):
-        for i in range(len(lin_files)):
-            file = lin_files[i]
+        for file in lin_files:
             lin_file = lin_dir + "/" + file
 
             # Ignore hidden files
             if file[0] == ".":
-                lin_files[i] = None
+                lin_files[file] = False
 
             if file in win_files:
                 # If present in both, compare modification times and dates
@@ -129,14 +132,14 @@ def sync(lin_dir, MODE, QUIET):
 
                 if win_time >= lin_time:
                     # Windows file more recent; remove from Linux file list
-                    lin_files[i] = None
+                    lin_files[file] = False
     count = 0
     errors = 0
 
     # Transfer files from Windows to Linux (Pull mode)
     if (MODE == "pull") or (MODE == "both"):
         for file in win_files:
-            if (not file) or (file is None):
+            if not win_files[file]:
                 continue
 
             win_file = win_dir + "/" + file
@@ -154,7 +157,7 @@ def sync(lin_dir, MODE, QUIET):
     # Transfer files from Linux to Windows (Push mode)
     if (MODE == "push") or (MODE == "both"):
         for file in lin_files:
-            if (not file) or (file is None):
+            if not lin_files[file]:
                 continue
 
             print(file)
